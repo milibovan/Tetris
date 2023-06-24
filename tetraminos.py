@@ -1,7 +1,7 @@
-from block import Block
+from tetramino import Tetramino
 from position import Position
 
-class LBlock(Block):
+class LTetramino(Tetramino):
 	def __init__(self):
 		super().__init__(id = 1)
 		self.cells = {
@@ -12,7 +12,7 @@ class LBlock(Block):
 		}
 		self.move(0, 3)
 
-class JBlock(Block):
+class JTetramino(Tetramino):
     def __init__(self):
         super().__init__(id = 2)
         self.cells = {
@@ -23,7 +23,7 @@ class JBlock(Block):
         }
         self.move(0, 3)
 
-class IBlock(Block):
+class ITetramino(Tetramino):
     def __init__(self):
         super().__init__(id = 3)
         self.cells = {
@@ -34,7 +34,7 @@ class IBlock(Block):
         }
         self.move(-1, 3)
 
-class OBlock(Block):
+class OTetramino(Tetramino):
     def __init__(self):
         super().__init__(id = 4)
         self.cells = {
@@ -42,7 +42,7 @@ class OBlock(Block):
         }
         self.move(0, 4)
 
-class SBlock(Block):
+class STetramino(Tetramino):
     def __init__(self):
         super().__init__(id = 5)
         self.cells = {
@@ -53,7 +53,7 @@ class SBlock(Block):
         }
         self.move(0, 3)
 
-class TBlock(Block):
+class TTetramino(Tetramino):
     def __init__(self):
         super().__init__(id = 6)
         self.cells = {
@@ -64,7 +64,7 @@ class TBlock(Block):
         }
         self.move(0, 3)
 
-class ZBlock(Block):
+class ZTetramino(Tetramino):
     def __init__(self):
         super().__init__(id = 7)
         self.cells = {

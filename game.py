@@ -1,14 +1,14 @@
 from grid import Grid
-from blocks import *
+from tetraminos import *
 import random
 import pygame
 
 class Game:
 	def __init__(self):
 		self.grid = Grid()
-		self.blocks = [IBlock(), JBlock(), LBlock(), OBlock(), SBlock(), TBlock(), ZBlock()]
-		self.current_block = self.get_random_block()
-		self.next_block = self.get_random_block()
+		self.Tetraminos = [ITetramino(), JTetramino(), LTetramino(), OTetramino(), STetramino(), TTetramino(), ZTetramino()]
+		self.current_Tetramino = self.get_random_Tetramino()
+		self.next_Tetramino = self.get_random_Tetramino()
 		self.game_over = False
 		self.score = 0
 		self.rotate_sound = pygame.mixer.Sound("Sounds/rotate.ogg")
@@ -26,65 +26,65 @@ class Game:
 			self.score += 500
 		self.score += move_down_points
 
-	def get_random_block(self):
-		if len(self.blocks) == 0:
-			self.blocks = [IBlock(), JBlock(), LBlock(), OBlock(), SBlock(), TBlock(), ZBlock()]
-		block = random.choice(self.blocks)
-		self.blocks.remove(block)
-		return block
+	def get_random_Tetramino(self):
+		if len(self.Tetraminos) == 0:
+			self.Tetraminos = [ITetramino(), JTetramino(), LTetramino(), OTetramino(), STetramino(), TTetramino(), ZTetramino()]
+		Tetramino = random.choice(self.Tetraminos)
+		self.Tetraminos.remove(Tetramino)
+		return Tetramino
 
 	def move_left(self):
-		self.current_block.move(0, -1)
-		if self.block_inside() == False or self.block_fits() == False:
-			self.current_block.move(0, 1)
+		self.current_Tetramino.move(0, -1)
+		if self.Tetramino_inside() == False or self.Tetramino_fits() == False:
+			self.current_Tetramino.move(0, 1)
 
 	def move_right(self):
-		self.current_block.move(0, 1)
-		if self.block_inside() == False or self.block_fits() == False:
-			self.current_block.move(0, -1)
+		self.current_Tetramino.move(0, 1)
+		if self.Tetramino_inside() == False or self.Tetramino_fits() == False:
+			self.current_Tetramino.move(0, -1)
 
 	def move_down(self):
-		self.current_block.move(1, 0)
-		if self.block_inside() == False or self.block_fits() == False:
-			self.current_block.move(-1, 0)
-			self.lock_block()
+		self.current_Tetramino.move(1, 0)
+		if self.Tetramino_inside() == False or self.Tetramino_fits() == False:
+			self.current_Tetramino.move(-1, 0)
+			self.lock_Tetramino()
 
-	def lock_block(self):
-		tiles = self.current_block.get_cell_positions()
+	def lock_Tetramino(self):
+		tiles = self.current_Tetramino.get_cell_positions()
 		for position in tiles:
-			self.grid.grid[position.row][position.column] = self.current_block.id
-		self.current_block = self.next_block
-		self.next_block = self.get_random_block()
+			self.grid.grid[position.row][position.column] = self.current_Tetramino.id
+		self.current_Tetramino = self.next_Tetramino
+		self.next_Tetramino = self.get_random_Tetramino()
 		rows_cleared = self.grid.clear_full_rows()
 		if rows_cleared > 0:
 			self.clear_sound.play()
 			self.update_score(rows_cleared, 0)
-		if self.block_fits() == False:
+		if self.Tetramino_fits() == False:
 			self.game_over = True
 
 	def reset(self):
 		self.grid.reset()
-		self.blocks = [IBlock(), JBlock(), LBlock(), OBlock(), SBlock(), TBlock(), ZBlock()]
-		self.current_block = self.get_random_block()
-		self.next_block = self.get_random_block()
+		self.Tetraminos = [ITetramino(), JTetramino(), LTetramino(), OTetramino(), STetramino(), TTetramino(), ZTetramino()]
+		self.current_Tetramino = self.get_random_Tetramino()
+		self.next_Tetramino = self.get_random_Tetramino()
 		self.score = 0
 
-	def block_fits(self):
-		tiles = self.current_block.get_cell_positions()
+	def Tetramino_fits(self):
+		tiles = self.current_Tetramino.get_cell_positions()
 		for tile in tiles:
 			if self.grid.is_empty(tile.row, tile.column) == False:
 				return False
 		return True
 
 	def rotate(self):
-		self.current_block.rotate()
-		if self.block_inside() == False or self.block_fits() == False:
-			self.current_block.undo_rotation()
+		self.current_Tetramino.rotate()
+		if self.Tetramino_inside() == False or self.Tetramino_fits() == False:
+			self.current_Tetramino.undo_rotation()
 		else:
 			self.rotate_sound.play()
 
-	def block_inside(self):
-		tiles = self.current_block.get_cell_positions()
+	def Tetramino_inside(self):
+		tiles = self.current_Tetramino.get_cell_positions()
 		for tile in tiles:
 			if self.grid.is_inside(tile.row, tile.column) == False:
 				return False
@@ -92,11 +92,11 @@ class Game:
 
 	def draw(self, screen):
 		self.grid.draw(screen)
-		self.current_block.draw(screen, 11, 11)
+		self.current_Tetramino.draw(screen, 11, 11)
 
-		if self.next_block.id == 3:
-			self.next_block.draw(screen, 255, 290)
-		elif self.next_block.id == 4:
-			self.next_block.draw(screen, 255, 280)
+		if self.next_Tetramino.id == 3:
+			self.next_Tetramino.draw(screen, 255, 290)
+		elif self.next_Tetramino.id == 4:
+			self.next_Tetramino.draw(screen, 255, 280)
 		else:
-			self.next_block.draw(screen, 270, 270)
+			self.next_Tetramino.draw(screen, 270, 270)
