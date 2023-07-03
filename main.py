@@ -1,63 +1,66 @@
-import pygame, sys
-from game import Game
-from colors import Colors
+from settings import *
+from tetris import Tetris, Text
+import sys
+import pathlib
 
-pygame.init()
 
-title_font = pygame.font.Font(None, 40)
-score_surface = title_font.render("Score", True, Colors.white)
-next_surface = title_font.render("Next", True, Colors.white)
-game_over_surface = title_font.render("GAME OVER", True, Colors.white)
+class App:
+    def __init__(self):
+        pg.init()
+        pg.display.set_caption('Tetris')
+        self.screen = pg.display.set_mode(WIN_RES)
+        self.clock = pg.time.Clock()
+        self.set_timer()
+        self.images = self.load_images()
+        self.tetris = Tetris(self)
+        self.text = Text(self)
 
-score_rect = pygame.Rect(320, 55, 170, 60)
-next_rect = pygame.Rect(320, 215, 170, 180)
+    def load_images(self):
+        files = [item for item in pathlib.Path(SPRITE_DIR_PATH).rglob('*.png') if item.is_file()]
+        images = [pg.image.load(file).convert_alpha() for file in files]
+        images = [pg.transform.scale(image, (TILE_SIZE, TILE_SIZE)) for image in images]
+        return images
 
-screen = pygame.display.set_mode((500, 620))
-pygame.display.set_caption("Python Tetris")
+    def set_timer(self):
+        self.user_event = pg.USEREVENT + 0
+        self.fast_user_event = pg.USEREVENT + 1
+        self.anim_trigger = False
+        self.fast_anim_trigger = False
+        pg.time.set_timer(self.user_event, ANIM_TIME_INTERVAL)
+        pg.time.set_timer(self.fast_user_event, FAST_ANIM_TIME_INTERVAL)
 
-clock = pygame.time.Clock()
+    def update(self):
+        self.tetris.update()
+        self.clock.tick(FPS)
 
-game = Game()
+    def draw(self):
+        self.screen.fill(color=BG_COLOR)
+        self.screen.fill(color=FIELD_COLOR, rect=(0, 0, *FIELD_RES))
+        self.tetris.draw()
+        self.text.draw()
+        pg.display.flip()
 
-GAME_UPDATE = pygame.USEREVENT
-pygame.time.set_timer(GAME_UPDATE, 200)
+    def check_events(self):
+        self.anim_trigger = False
+        self.fast_anim_trigger = False
+        for event in pg.event.get():
+            if event.type == pg.QUIT or (event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
+                pg.quit()
+                sys.exit()
+            elif event.type == pg.KEYDOWN:
+                self.tetris.control(pressed_key=event.key)
+            elif event.type == self.user_event:
+                self.anim_trigger = True
+            elif event.type == self.fast_user_event:
+                self.fast_anim_trigger = True
 
-while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        if event.type == pygame.KEYDOWN:
-            if game.game_over:
-                game.game_over = False
-                game.reset()
-            if event.key == pygame.K_LEFT and game.game_over == False:
-                game.move_left()
-            if event.key == pygame.K_RIGHT and game.game_over == False:
-                game.move_right()
-            if event.key == pygame.K_DOWN and game.game_over == False:
-                game.move_down()
-                game.update_score(0, 1)
-            if event.key == pygame.K_UP and game.game_over == False:
-                game.rotate()
-        if event.type == GAME_UPDATE and game.game_over == False:
-            game.move_down()
+    def run(self):
+        while True:
+            self.check_events()
+            self.update()
+            self.draw()
 
-    # Drawing
-    score_value_surface = title_font.render(str(game.score), True, Colors.white)
 
-    screen.fill(Colors.dark_blue)
-    screen.blit(score_surface, (365, 20, 50, 50))
-    screen.blit(next_surface, (375, 180, 50, 50))
-
-    if game.game_over:
-        screen.blit(game_over_surface, (320, 450, 50, 50))
-
-    pygame.draw.rect(screen, Colors.light_blue, score_rect, 0, 10)
-    screen.blit(score_value_surface, score_value_surface.get_rect(centerx=score_rect.centerx,
-                                                                  centery=score_rect.centery))
-    pygame.draw.rect(screen, Colors.light_blue, next_rect, 0, 10)
-    game.draw(screen)
-
-    pygame.display.update()
-    clock.tick(60)
+if __name__ == '__main__':
+    app = App()
+    app.run()
