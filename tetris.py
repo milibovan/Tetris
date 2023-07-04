@@ -46,16 +46,14 @@ class Tetris:
 
     def copy(self):
         copied_tetris = Tetris(self.app)
-
         copied_tetris.sprite_group = self.sprite_group.copy()
-        copied_tetris.field_array = copy.deepcopy(self.field_array)
-        copied_tetris.tetromino = self.tetromino.copy()
-        copied_tetris.next_tetromino = self.next_tetromino.copy()
+        copied_tetris.field_array = [row[:] for row in self.field_array]
+        copied_tetris.tetromino = self.tetromino.copy(copied_tetris)
+        copied_tetris.next_tetromino = self.next_tetromino.copy(copied_tetris)
         copied_tetris.speed_up = self.speed_up
         copied_tetris.score = self.score
         copied_tetris.full_lines = self.full_lines
         copied_tetris.points_per_lines = self.points_per_lines.copy()
-
         return copied_tetris
 
     def get_score(self):
@@ -83,7 +81,13 @@ class Tetris:
     def put_tetromino_blocks_in_array(self):
         for block in self.tetromino.blocks:
             x, y = int(block.pos.x), int(block.pos.y)
-            self.field_array[y][x] = block
+
+            if 0 <= y < FIELD_H:
+                self.field_array[y][x] = block
+            elif y >= FIELD_H:
+                self.field_array[FIELD_H - 1][x] = block
+            else:
+                raise ValueError(f"Tetromino block out of field boundaries at position({x},{y})")
 
     def get_field_array(self):
         return [[0 for x in range(FIELD_W)] for y in range(FIELD_H)]

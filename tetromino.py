@@ -80,13 +80,12 @@ class Tetromino:
         self.landing = False
         self.current = current
 
-    def copy(self):
-        copied_tetromino = Tetromino(self.tetris, self.current)
+    def copy(self, tetris):
+        copied_tetromino = Tetromino(tetris, current=self.current)
         copied_tetromino.shape = self.shape
         copied_tetromino.image = self.image
-        copied_tetromino.blocks = [block.copy(copied_tetromino) for block in self.blocks]
+        copied_tetromino.blocks = [Block(copied_tetromino, block.pos.copy()) for block in self.blocks]
         copied_tetromino.landing = self.landing
-
         return copied_tetromino
 
     def get_column(self):
