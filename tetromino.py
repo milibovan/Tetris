@@ -101,7 +101,13 @@ class Tetromino:
                 block.pos = new_block_positions[i]
 
     def is_collide(self, block_positions):
-        return any(map(Block.is_collide, self.blocks, block_positions))
+        for block in self.blocks:
+            x, y = int(block.pos.x), int(block.pos.y)
+            if (0 <= x < FIELD_W and y < FIELD_H and
+                    (y < 0 or not self.tetris.field_array[y][x]) and
+                    block.pos not in block_positions):
+                return False
+        return True
 
     def move(self, direction):
         move_direction = MOVE_DIRECTIONS[direction]
@@ -145,11 +151,18 @@ class Tetromino:
     def move_to_position(self, position):
         current_position = self.get_position()
         move_direction = vec(position[0] - current_position.x, position[1] - current_position.y)
+        max_distance = max(abs(move_direction.x), abs(move_direction.y))
+        for _ in range(int(max_distance)):
+            if move_direction.x != 0:
+                self.move(direction='right' if move_direction.x > 0 else 'left')
+            if move_direction.y != 0:
+                self.move(direction='down')
 
-        for _ in range(int(move_direction.x)):
-            self.move(direction='right')
+    def get_rotation_positions(self):
+        original_positions = [block.pos for block in self.blocks]
+        self.rotate()
+        rotated_positions = [block.pos for block in self.blocks]
 
-        for _ in range(int(move_direction.y)):
-            self.move(direction='down')
-
-
+        for block, original_position in zip(self.blocks, original_positions):
+            block.pos = original_position
+        return rotated_positions

@@ -3,6 +3,7 @@ import math
 from tetromino import Tetromino
 import pygame.freetype as ft
 import copy
+import ai
 
 
 class Text:
@@ -197,21 +198,30 @@ class Tetris:
 
         for _ in range(4):
             for column in range(FIELD_W):
-                self.reset_position(column)
+                self.tetromino.pos = vec(column, 0)
 
-                move_direction = MOVE_DIRECTIONS['down']
-                while not self.tetromino.is_collide([block.pos + move_direction for block in self.tetromino.blocks]):
+                while True:
+                    next_positions = [block.pos + MOVE_DIRECTIONS['down'] for block in self.tetromino.blocks]
+
+                    if self.tetromino.is_collide(next_positions) or any(pos.y >= FIELD_H for pos in next_positions):
+                        break
+
                     self.tetromino.move(direction='down')
+            landing_position = [vec(block.pos.x, block.pos.y) for block in self.tetromino.blocks]
 
-                landing_position = [block.pos for block in self.tetromino.blocks]
-                legal_moves.append([vec(pos[0], pos[1]) for pos in landing_position])
+            if all(0 <= pos.x < FIELD_W and 0 <= pos.y < FIELD_H for pos in landing_position):
+                legal_moves.append(landing_position)
 
+            next_rotation_positions = self.tetromino.get_rotation_positions()
+            if not self.tetromino.is_collide(next_rotation_positions) and all(
+                    0 <= pos.x < FIELD_W and 0 <= pos.y < FIELD_H for pos in next_rotation_positions):
                 self.tetromino.rotate()
 
         return legal_moves
 
-    def reset_position(self, column):
-        for block in self.tetromino.blocks:
-            block.pos.x = column
-            block.pos.y = -1
-
+    def ai_move(self):
+        _, best_move = ai.evaluate(self, 2)
+        if best_move is not None:
+            for position in best_move:
+                self.tetromino.move_to_position(position)
+                self.update()

@@ -64,13 +64,8 @@ class App:
         while True:
             self.check_events()
             self.update()
-
-            if True and not self.tetris.is_game_over():
-                best_score, best_move = ai.evaluate(self.tetris, depth=2)
-                if best_move is not None:
-                    self.tetris.tetromino.move_to_position(best_move)
-
             self.draw()
+            self.tetris.ai_move()
 
 
 if __name__ == '__main__':
