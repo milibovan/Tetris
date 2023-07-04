@@ -68,6 +68,9 @@ class Tetromino:
         self.landing = False
         self.current = current
 
+    def get_column(self):
+        return min(block.pos.x for block in self.blocks)
+
     def rotate(self):
         pivot_pos = self.blocks[0].pos
         new_block_positions = [block.rotate(pivot_pos) for block in self.blocks]
@@ -93,13 +96,38 @@ class Tetromino:
     def update(self):
         self.move(direction='down')
 
+    def move_to_column(self, column):
+        current_column = self.get_column()
+        move_direction = column - current_column
 
+        if move_direction < 0:
+            for _ in range(abs(move_direction)):
+                self.move(direction='left')
+        elif move_direction > 0:
+            for _ in range(move_direction):
+                self.move(direction='right')
 
+    def is_valid_position(self):
+        for block in self.blocks:
+            if block.is_collide(block.pos):
+                return False
+        return True
 
+    def move_to_position(self, position):
+        current_position = self.get_position()
+        move_direction = position - current_position
 
+        if move_direction.x < 0:
+            for _ in range(abs(move_direction.x)):
+                self.move(direction='left')
+        elif move_direction.x > 0:
+            for _ in range(move_direction.x):
+                self.move(direction='right')
 
+        if move_direction.y > 0:
+            for _ in range(move_direction.y):
+                self.move(direction='down')
 
-
-
-
-
+    def get_position(self):
+        return vec(min(block.pos.x for block in self.blocks),
+                   min(block.pos.y for block in self.blocks))

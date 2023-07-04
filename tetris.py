@@ -117,15 +117,85 @@ class Tetris:
         self.draw_grid()
         self.sprite_group.draw(self.app.screen)
 
+    def count_holes(self):
+        holes = 0
+        for x in range(FIELD_W):
+            block_found = False
+            for y in range(FIELD_H):
+                if self.field_array[y][x] != 0:
+                    block_found = True
+                elif self.field_array[y][x] == 0 and block_found:
+                    holes += 1
+        return holes
 
+    def get_landing_height(self):
+        return INIT_POS_OFFSET[1] - self.tetromino.blocks[0].pos.y
 
+    def count_eroded_cells(self):
+        eroded_cells = 0
+        for x in range(FIELD_W):
+            for y in range(FIELD_H):
+                if self.field_array[y][x] == 0:
+                    if y < FIELD_H - 1 and self.field_array[y + 1][x] != 0:
+                        eroded_cells += 1
+        return eroded_cells
 
+    def calculate_cumulative_wells(self):
+        cumulative_wells = 0
+        for x in range(FIELD_W):
+            well_depth = 0
+            for y in range(FIELD_H - 1, -1, -1):
+                if self.field_array[y][x] == 0:
+                    well_depth += 1
+                else:
+                    cumulative_wells += well_depth * (well_depth + 1) // 2
+                    well_depth = 0
+            cumulative_wells += well_depth * (well_depth + 1) // 2
+        return cumulative_wells
 
+    def count_row_transitions(self):
+        row_transitions = 0
+        for y in range(FIELD_H):
+            prev_block = 1
+            for x in range(FIELD_W):
+                if (self.field_array[y][x] != 0) != (prev_block != 0):
+                    row_transitions += 1
+                prev_block = self.field_array[y][x]
+            if prev_block == 0:
+                row_transitions += 1
+        return row_transitions
 
+    def count_column_transitions(self):
+        column_transitions = 0
+        for x in range(FIELD_W):
+            prev_block = 1
+            for y in range(FIELD_H - 1, -1, -1):
+                if (self.field_array[y][x] != 0) != (prev_block != 0):
+                    column_transitions += 1
+                prev_block = self.field_array[y][x]
+            if prev_block == 0:
+                column_transitions += 1
+        return column_transitions
 
+    def get_legal_moves(self):
+        legal_moves = []
 
+        for _ in range(4):
+            for column in range(FIELD_W):
+                self.reset_position(column)
 
+                while not self.tetromino.is_collide([block.pos + 'down' for block in self.tetromino.blocks]):
+                    self.tetromino.move(direction='down')
 
+                landing_position = [block.pos for block in self.tetromino.blocks]
+                legal_moves.append(landing_position)
 
+                self.tetromino.rotate()
 
+        return legal_moves
+
+    def reset_position(self, column):
+        for block in self.tetromino.blocks:
+            block.pos.x = column
+            block.pos.y = -1
 
