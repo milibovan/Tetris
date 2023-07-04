@@ -2,6 +2,7 @@ from settings import *
 from tetris import Tetris, Text
 import sys
 import pathlib
+import ai
 
 
 class App:
@@ -54,10 +55,21 @@ class App:
             elif event.type == self.fast_user_event:
                 self.fast_anim_trigger = True
 
+    #def run(self):
+    #    while True:
+    #        self.check_events()
+    #        self.update()
+    #        self.draw()
     def run(self):
         while True:
             self.check_events()
             self.update()
+
+            if True and not self.tetris.is_game_over():
+                best_score, best_move = ai.evaluate(self.tetris, depth=2)
+                if best_move is not None:
+                    self.tetris.tetromino.move_to_position(best_move)
+
             self.draw()
 
 

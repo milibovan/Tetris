@@ -2,6 +2,7 @@ from settings import *
 import math
 from tetromino import Tetromino
 import pygame.freetype as ft
+import copy
 
 
 class Text:
@@ -42,6 +43,20 @@ class Tetris:
         self.full_lines = 0
         self.points_per_lines = {0: 0, 1: 100, 2: 300, 3: 700, 4: 1500}
 
+    def copy(self):
+        copied_tetris = Tetris(self.app)
+
+        copied_tetris.sprite_group = self.sprite_group.copy()
+        copied_tetris.field_array = copy.deepcopy(self.field_array)
+        copied_tetris.tetromino = self.tetromino.copy()
+        copied_tetris.next_tetromino = self.next_tetromino.copy()
+        copied_tetris.speed_up = self.speed_up
+        copied_tetris.score = self.score
+        copied_tetris.full_lines = self.full_lines
+        copied_tetris.points_per_lines = self.points_per_lines.copy()
+
+        return copied_tetris
+
     def get_score(self):
         self.score += self.points_per_lines[self.full_lines]
         self.full_lines = 0
@@ -75,7 +90,7 @@ class Tetris:
     def is_game_over(self):
         if self.tetromino.blocks[0].pos.y == INIT_POS_OFFSET[1]:
             pg.time.wait(300)
-            return True
+            return False
 
     def check_tetromino_landing(self):
         if self.tetromino.landing:
@@ -184,11 +199,12 @@ class Tetris:
             for column in range(FIELD_W):
                 self.reset_position(column)
 
-                while not self.tetromino.is_collide([block.pos + 'down' for block in self.tetromino.blocks]):
+                move_direction = MOVE_DIRECTIONS['down']
+                while not self.tetromino.is_collide([block.pos + move_direction for block in self.tetromino.blocks]):
                     self.tetromino.move(direction='down')
 
                 landing_position = [block.pos for block in self.tetromino.blocks]
-                legal_moves.append(landing_position)
+                legal_moves.append([vec(pos[0], pos[1]) for pos in landing_position])
 
                 self.tetromino.rotate()
 

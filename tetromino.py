@@ -19,6 +19,18 @@ class Block(pg.sprite.Sprite):
         self.sfx_cycles = random.randrange(6, 8)
         self.cycle_counter = 0
 
+    def copy(self, copied_tetromino):
+        copied_block = Block(copied_tetromino, self.pos)
+        copied_block.alive = self.alive
+        copied_block.image = self.image.copy()
+        copied_block.rect = self.rect.copy()
+        copied_block.sfx_image = self.sfx_image.copy()
+        copied_block.sfx_speed = self.sfx_speed
+        copied_block.sfx_cycles = self.sfx_cycles
+        copied_block.cycle_counter = self.cycle_counter
+
+        return copied_block
+
     def sfx_end_time(self):
         if self.tetromino.tetris.app.anim_trigger:
             self.cycle_counter += 1
@@ -68,6 +80,15 @@ class Tetromino:
         self.landing = False
         self.current = current
 
+    def copy(self):
+        copied_tetromino = Tetromino(self.tetris, self.current)
+        copied_tetromino.shape = self.shape
+        copied_tetromino.image = self.image
+        copied_tetromino.blocks = [block.copy(copied_tetromino) for block in self.blocks]
+        copied_tetromino.landing = self.landing
+
+        return copied_tetromino
+
     def get_column(self):
         return min(block.pos.x for block in self.blocks)
 
@@ -113,21 +134,22 @@ class Tetromino:
                 return False
         return True
 
+    def get_position(self):
+        positions = [block.pos for block in self.blocks]
+        x_values = [pos.x for pos in positions]
+        y_values = [pos.y for pos in positions]
+        min_x = min(x_values)
+        min_y = min(y_values)
+        return vec(min_x, min_y)
+
     def move_to_position(self, position):
         current_position = self.get_position()
-        move_direction = position - current_position
+        move_direction = vec(position[0] - current_position.x, position[1] - current_position.y)
 
-        if move_direction.x < 0:
-            for _ in range(abs(move_direction.x)):
-                self.move(direction='left')
-        elif move_direction.x > 0:
-            for _ in range(move_direction.x):
-                self.move(direction='right')
+        for _ in range(int(move_direction.x)):
+            self.move(direction='right')
 
-        if move_direction.y > 0:
-            for _ in range(move_direction.y):
-                self.move(direction='down')
+        for _ in range(int(move_direction.y)):
+            self.move(direction='down')
 
-    def get_position(self):
-        return vec(min(block.pos.x for block in self.blocks),
-                   min(block.pos.y for block in self.blocks))
+
