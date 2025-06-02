@@ -38,5 +38,4 @@ def utility(tetris):
     if utility_value < minUtility or utility_value > maxUtility:
         raise ValueError(f"Invalid utility {utility_value} returned")
 
-    print(utility_value)
     return utility_value

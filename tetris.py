@@ -82,9 +82,9 @@ class Tetris:
         for block in self.tetromino.blocks:
             x, y = int(block.pos.x), int(block.pos.y)
 
-            if 0 <= y < FIELD_H:
+            if 0 <= x < FIELD_W and 0 <= y < FIELD_H:
                 self.field_array[y][x] = block
-            elif y >= FIELD_H:
+            elif 0 <= x < FIELD_W and y >= FIELD_H:
                 self.field_array[FIELD_H - 1][x] = block
             else:
                 raise ValueError(f"Tetromino block out of field boundaries at position({x},{y})")

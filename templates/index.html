@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberTetris</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: #0a0a1a;
+            color: #00ff9d;
+            overflow: hidden;
+        }
+
+        .grid-cell {
+            border: 1px solid rgba(0, 255, 157, 0.1);
+            box-sizing: border-box;
+        }
+
+        .piece-i { background-color: #00f0ff; }
+        .piece-j { background-color: #0000ff; }
+        .piece-l { background-color: #ff7f00; }
+        .piece-o { background-color: #ffff00; }
+        .piece-s { background-color: #00ff00; }
+        .piece-t { background-color: #800080; }
+        .piece-z { background-color: #ff0000; }
+
+        .glow {
+            box-shadow: 0 0 5px currentColor, 0 0 10px currentColor;
+        }
+
+        .scanline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                transparent 0%,
+                rgba(0, 255, 157, 0.05) 50%,
+                transparent 100%
+            );
+            background-size: 100% 8px;
+            pointer-events: none;
+            animation: scanline 4s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+
+        .neon-border {
+            border: 2px solid #00ff9d;
+            box-shadow: 0 0 10px #00ff9d, inset 0 0 10px #00ff9d;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 relative">
+    <div class="scanline"></div>
+
+    <div class="absolute top-0 left-0 w-full h-full bg-black opacity-50 -z-10"></div>
+
+    <div class="absolute top-0 left-0 w-full h-full grid grid-cols-10 grid-rows-20 -z-20">
+        <div class="grid-cell"></div>
+        <div class="grid-cell"></div>
+        <!-- Repeat for all grid cells -->
+    </div>
+
+    <h1 class="text-4xl md:text-6xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-green-400">
+        CYBER<span class="text-purple-400">TETRIS</span>
+    </h1>
+
+    <div class="flex flex-col md:flex-row gap-8 items-center">
+        <!-- Game Board -->
+        <div class="relative">
+            <div class="neon-border rounded-lg p-1 bg-black bg-opacity-70">
+                <div id="game-board" class="grid grid-cols-10 grid-rows-20 gap-0 w-[250px] h-[500px]"></div>
+            </div>
+            <div class="absolute top-0 left-0 w-full h-full pointer-events-none">
+                <div class="absolute top-0 left-0 w-full h-4 bg-gradient-to-b from-cyan-500 to-transparent opacity-20"></div>
+                <div class="absolute bottom-0 left-0 w-full h-4 bg-gradient-to-t from-purple-500 to-transparent opacity-20"></div>
+            </div>
+        </div>
+
+        <!-- Side Panel -->
+        <div class="flex flex-col gap-6 w-full md:w-auto">
+            <div class="neon-border rounded-lg p-4 bg-black bg-opacity-70">
+                <h2 class="text-xl font-bold mb-2 text-purple-400">STATS</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-cyan-400">SCORE</p>
+                        <p id="score" class="text-2xl font-mono">0</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-cyan-400">LEVEL</p>
+                        <p id="level" class="text-2xl font-mono">1</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-cyan-400">LINES</p>
+                        <p id="lines" class="text-2xl font-mono">0</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-cyan-400">SPEED</p>
+                        <p id="speed" class="text-2xl font-mono">1x</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="neon-border rounded-lg p-4 bg-black bg-opacity-70">
+                <h2 class="text-xl font-bold mb-2 text-purple-400">NEXT</h2>
+                <div id="next-piece" class="w-[100px] h-[100px] grid grid-cols-4 grid-rows-4 gap-0 mx-auto"></div>
+            </div>
+
+            <div class="neon-border rounded-lg p-4 bg-black bg-opacity-70">
+                <h2 class="text-xl font-bold mb-2 text-purple-400">CONTROLS</h2>
+                <div class="grid grid-cols-3 gap-2 text-sm">
+                    <div class="text-center">
+                        <div class="bg-gray-800 rounded p-2 mb-1"><i class="fas fa-arrow-up"></i></div>
+                        <p>Rotate</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="bg-gray-800 rounded p-2 mb-1"><i class="fas fa-arrow-left"></i></div>
+                        <p>Left</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="bg-gray-800 rounded p-2 mb-1"><i class="fas fa-arrow-right"></i></div>
+                        <p>Right</p>
+                    </div>
+                    <div class="text-center col-span-3">
+                        <div class="bg-gray-800 rounded p-2 mb-1"><i class="fas fa-arrow-down"></i></div>
+                        <p>Soft Drop</p>
+                    </div>
+                    <div class="text-center col-span-3">
+                        <div class="bg-gray-800 rounded p-2 mb-1">Space</div>
+                        <p>Hard Drop</p>
+                    </div>
+                    <div class="text-center col-span-3">
+                        <div class="bg-gray-800 rounded p-2 mb-1">P</div>
+                        <p>Pause</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="game-over-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 hidden z-50">
+        <div class="neon-border rounded-lg p-8 bg-black bg-opacity-90 text-center max-w-md w-full">
+            <h2 class="text-3xl font-bold mb-4 text-red-400">GAME OVER</h2>
+            <p class="mb-6">Your final score: <span id="final-score" class="text-2xl">0</span></p>
+            <button id="restart-btn" class="bg-gradient-to-r from-purple-600 to-cyan-600 px-6 py-3 rounded-lg font-bold hover:opacity-90 transition">
+                <i class="fas fa-sync-alt mr-2"></i> RESTART
+            </button>
+        </div>
+    </div>
+
+    <!-- Start Screen -->
+    <div id="start-screen" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 z-50">
+        <div class="neon-border rounded-lg p-8 bg-black bg-opacity-90 text-center max-w-md w-full">
+            <h2 class="text-4xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-green-400">
+                CYBER<span class="text-purple-400">TETRIS</span>
+            </h2>
+            <p class="mb-8 text-gray-300">A futuristic twist on the classic puzzle game</p>
+            <button id="start-btn" class="bg-gradient-to-r from-purple-600 to-cyan-600 px-8 py-4 rounded-lg font-bold hover:opacity-90 transition text-lg">
+                <i class="fas fa-play mr-2"></i> START GAME
+            </button>
+            <div class="mt-6 text-sm text-gray-400">
+                <p>Use arrow keys to move and rotate</p>
+                <p>Space to hard drop, P to pause</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pause Screen -->
+    <div id="pause-screen" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-80 hidden z-50">
+        <div class="neon-border rounded-lg p-8 bg-black bg-opacity-90 text-center max-w-md w-full">
+            <h2 class="text-3xl font-bold mb-6 text-yellow-400">GAME PAUSED</h2>
+            <button id="resume-btn" class="bg-gradient-to-r from-purple-600 to-cyan-600 px-8 py-3 rounded-lg font-bold hover:opacity-90 transition mb-4">
+                <i class="fas fa-play mr-2"></i> RESUME
+            </button>
+            <button id="restart-btn-2" class="bg-gray-700 px-8 py-3 rounded-lg font-bold hover:opacity-90 transition">
+                <i class="fas fa-sync-alt mr-2"></i> RESTART
+            </button>
+        </div>
+    </div>
+
+    <div class="absolute bottom-4 left-0 w-full text-center text-xs text-gray-500">
+        <p>CYBER<span class="text-purple-400">TETRIS</span> v1.0 | © 2023 Neon Grid</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Game constants
+            const COLS = 10;
+            const ROWS = 20;
+            const BLOCK_SIZE = 25;
+            const NEXT_BLOCK_SIZE = 20;
+
+            // Game variables
+            let board = Array(ROWS).fill().map(() => Array(COLS).fill(0));
+            let currentPiece = null;
+            let nextPiece = null;
+            let score = 0;
+            let level = 1;
+            let lines = 0;
+            let gameOver = false;
+            let isPaused = false;
+            let dropInterval = 1000;
+            let dropStart = null;
+            let animationFrameId = null;
+
+            // DOM elements
+            const gameBoard = document.getElementById('game-board');
+            const nextPieceDisplay = document.getElementById('next-piece');
+            const scoreDisplay = document.getElementById('score');
+            const levelDisplay = document.getElementById('level');
+            const linesDisplay = document.getElementById('lines');
+            const speedDisplay = document.getElementById('speed');
+            const gameOverModal = document.getElementById('game-over-modal');
+            const finalScoreDisplay = document.getElementById('final-score');
+            const startScreen = document.getElementById('start-screen');
+            const pauseScreen = document.getElementById('pause-screen');
+            const startBtn = document.getElementById('start-btn');
+            const restartBtn = document.getElementById('restart-btn');
+            const restartBtn2 = document.getElementById('restart-btn-2');
+            const resumeBtn = document.getElementById('resume-btn');
+
+            // Tetromino shapes
+            const SHAPES = {
+                I: [
+                    [0, 0, 0, 0],
+                    [1, 1, 1, 1],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0]
+                ],
+                J: [
+                    [1, 0, 0],
+                    [1, 1, 1],
+                    [0, 0, 0]
+                ],
+                L: [
+                    [0, 0, 1],
+                    [1, 1, 1],
+                    [0, 0, 0]
+                ],
+                O: [
+                    [1, 1],
+                    [1, 1]
+                ],
+                S: [
+                    [0, 1, 1],
+                    [1, 1, 0],
+                    [0, 0, 0]
+                ],
+                T: [
+                    [0, 1, 0],
+                    [1, 1, 1],
+                    [0, 0, 0]
+                ],
+                Z: [
+                    [1, 1, 0],
+                    [0, 1, 1],
+                    [0, 0, 0]
+                ]
+            };
+
+            const COLORS = {
+                I: 'piece-i',
+                J: 'piece-j',
+                L: 'piece-l',
+                O: 'piece-o',
+                S: 'piece-s',
+                T: 'piece-t',
+                Z: 'piece-z'
+            };
+
+            // Initialize the game board display
+            function initBoard() {
+                gameBoard.innerHTML = '';
+                for (let row = 0; row < ROWS; row++) {
+                    for (let col = 0; col < COLS; col++) {
+                        const cell = document.createElement('div');
+                        cell.classList.add('grid-cell', 'w-full', 'h-full');
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                        gameBoard.appendChild(cell);
+                    }
+                }
+            }
+
+            // Initialize the next piece display
+            function initNextPieceDisplay() {
+                nextPieceDisplay.innerHTML = '';
+                for (let row = 0; row < 4; row++) {
+                    for (let col = 0; col < 4; col++) {
+                        const cell = document.createElement('div');
+                        cell.classList.add('w-full', 'h-full');
+                        nextPieceDisplay.appendChild(cell);
+                    }
+                }
+            }
+
+            // Get a random tetromino
+            function getRandomPiece() {
+                const pieces = Object.keys(SHAPES);
+                const randomPiece = pieces[Math.floor(Math.random() * pieces.length)];
+                return {
+                    shape: SHAPES[randomPiece],
+                    color: COLORS[randomPiece],
+                    x: Math.floor(COLS / 2) - Math.floor(SHAPES[randomPiece][0].length / 2),
+                    y: 0
+                };
+            }
+
+            // Draw the game board
+            function drawBoard() {
+                const cells = document.querySelectorAll('#game-board .grid-cell');
+                cells.forEach(cell => {
+                    const row = parseInt(cell.dataset.row);
+                    const col = parseInt(cell.dataset.col);
+
+                    // Clear the cell
+                    cell.className = 'grid-cell w-full h-full';
+
+                    // Draw the current piece
+                    if (currentPiece) {
+                        for (let r = 0; r < currentPiece.shape.length; r++) {
+                            for (let c = 0; c < currentPiece.shape[r].length; c++) {
+                                if (currentPiece.shape[r][c] &&
+                                    row === currentPiece.y + r &&
+                                    col === currentPiece.x + c) {
+                                    cell.classList.add(currentPiece.color, 'glow');
+                                }
+                            }
+                        }
+                    }
+
+                    // Draw the board pieces
+                    if (board[row][col]) {
+                        cell.classList.add(board[row][col], 'glow');
+                    }
+                });
+            }
+
+            // Draw the next piece
+            function drawNextPiece() {
+                const cells = document.querySelectorAll('#next-piece div');
+                cells.forEach((cell, index) => {
+                    const row = Math.floor(index / 4);
+                    const col = index % 4;
+
+                    // Clear the cell
+                    cell.className = 'w-full h-full';
+
+                    // Draw the next piece
+                    if (nextPiece && row < nextPiece.shape.length && col < nextPiece.shape[0].length) {
+                        if (nextPiece.shape[row][col]) {
+                            cell.classList.add(nextPiece.color, 'glow');
+                        }
+                    }
+                });
+            }
+
+            // Check for collisions
+            function collision(x, y, piece) {
+    for (let r = 0; r < piece.shape.length; r++) {
+        for (let c = 0; c < piece.shape[r].length; c++) {
+            if (piece.shape[r][c]) {
+                let newX = x + c;
+                let newY = y + r;
+                if (newX < 0 || newX >= COLS || newY >= ROWS || (newY >= 0 && board[newY][newX])) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+// Merge piece into board
+function merge(piece) {
+    for (let r = 0; r < piece.shape.length; r++) {
+        for (let c = 0; c < piece.shape[r].length; c++) {
+            if (piece.shape[r][c]) {
+                let row = piece.y + r;
+                let col = piece.x + c;
+                if (row >= 0 && col >= 0 && row < ROWS && col < COLS) {
+                    board[row][col] = piece.color;
+                }
+            }
+        }
+    }
+}
+
+// Clear full lines
+function clearLines() {
+    let linesCleared = 0;
+    for (let r = ROWS - 1; r >= 0; r--) {
+        if (board[r].every(cell => cell)) {
+            board.splice(r, 1);
+            board.unshift(new Array(COLS).fill(0));
+            linesCleared++;
+            r++; // recheck current row
+        }
+    }
+    if (linesCleared > 0) {
+        lines += linesCleared;
+        score += linesCleared * 100;
+        level = Math.floor(lines / 10) + 1;
+        dropInterval = Math.max(100, 1000 - level * 100);
+        updateStats();
+    }
+}
+
+// Rotate piece
+function rotate(piece) {
+    const newShape = piece.shape[0].map((_, i) => piece.shape.map(row => row[i])).reverse();
+    const newPiece = { ...piece, shape: newShape };
+    if (!collision(piece.x, piece.y, newPiece)) {
+        piece.shape = newShape;
+    }
+}
+
+// Drop piece by one row
+function drop() {
+    if (!currentPiece) return;
+    if (!collision(currentPiece.x, currentPiece.y + 1, currentPiece)) {
+        currentPiece.y++;
+    } else {
+        merge(currentPiece);
+        clearLines();
+        currentPiece = nextPiece;
+        nextPiece = getRandomPiece();
+        if (collision(currentPiece.x, currentPiece.y, currentPiece)) {
+            gameOver = true;
+            finalScoreDisplay.textContent = score;
+            gameOverModal.classList.remove('hidden');
+            cancelAnimationFrame(animationFrameId);
+            return;
+        }
+    }
+    drawBoard();
+    drawNextPiece();
+}
+
+// Update stats
+function updateStats() {
+    scoreDisplay.textContent = score;
+    levelDisplay.textContent = level;
+    linesDisplay.textContent = lines;
+    speedDisplay.textContent = level + 'x';
+}
+
+// Game loop
+function update(time = 0) {
+    if (isPaused || gameOver) return;
+    if (!dropStart) dropStart = time;
+    const deltaTime = time - dropStart;
+    if (deltaTime > dropInterval) {
+        drop();
+        dropStart = time;
+    }
+    animationFrameId = requestAnimationFrame(update);
+}
+
+// Controls
+document.addEventListener('keydown', (e) => {
+    if (gameOver || isPaused || !currentPiece) return;
+    switch (e.key) {
+        case 'ArrowLeft':
+            if (!collision(currentPiece.x - 1, currentPiece.y, currentPiece)) currentPiece.x--;
+            break;
+        case 'ArrowRight':
+            if (!collision(currentPiece.x + 1, currentPiece.y, currentPiece)) currentPiece.x++;
+            break;
+        case 'ArrowDown':
+            drop();
+            break;
+        case 'ArrowUp':
+            rotate(currentPiece);
+            break;
+        case ' ': // Hard drop
+            while (!collision(currentPiece.x, currentPiece.y + 1, currentPiece)) {
+                currentPiece.y++;
+            }
+            drop();
+            break;
+        case 'p':
+        case 'P':
+            pauseGame();
+            break;
+    }
+    drawBoard();
+});
+
+// Game control buttons
+startBtn.addEventListener('click', () => {
+    startScreen.classList.add('hidden');
+    startGame();
+});
+
+restartBtn.addEventListener('click', restartGame);
+restartBtn2.addEventListener('click', restartGame);
+resumeBtn.addEventListener('click', resumeGame);
+
+function startGame() {
+    board = Array(ROWS).fill().map(() => Array(COLS).fill(0));
+    score = 0;
+    level = 1;
+    lines = 0;
+    gameOver = false;
+    isPaused = false;
+    dropInterval = 1000;
+    currentPiece = getRandomPiece();
+    nextPiece = getRandomPiece();
+    initBoard();
+    initNextPieceDisplay();
+    updateStats();
+    drawBoard();
+    drawNextPiece();
+    dropStart = null;
+    animationFrameId = requestAnimationFrame(update);
+}
+
+function restartGame() {
+    gameOverModal.classList.add('hidden');
+    pauseScreen.classList.add('hidden');
+    startGame();
+}
+
+function pauseGame() {
+    isPaused = true;
+    pauseScreen.classList.remove('hidden');
+    cancelAnimationFrame(animationFrameId);
+}
+
+function resumeGame() {
+    isPaused = false;
+    pauseScreen.classList.add('hidden');
+    dropStart = null;
+    animationFrameId = requestAnimationFrame(update);
+}
+
+});
+</script>
+</body>
+</html>
