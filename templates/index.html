@@ -379,185 +379,202 @@
 
             // Check for collisions
             function collision(x, y, piece) {
-    for (let r = 0; r < piece.shape.length; r++) {
-        for (let c = 0; c < piece.shape[r].length; c++) {
-            if (piece.shape[r][c]) {
-                let newX = x + c;
-                let newY = y + r;
-                if (newX < 0 || newX >= COLS || newY >= ROWS || (newY >= 0 && board[newY][newX])) {
-                    return true;
+                for (let r = 0; r < piece.shape.length; r++) {
+                    for (let c = 0; c < piece.shape[r].length; c++) {
+                        if (piece.shape[r][c]) {
+                            let newX = x + c;
+                            let newY = y + r;
+                            if (newX < 0 || newX >= COLS || newY >= ROWS || (newY >= 0 && board[newY][newX])) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+
+            // Merge piece into board
+            function merge(piece) {
+                for (let r = 0; r < piece.shape.length; r++) {
+                    for (let c = 0; c < piece.shape[r].length; c++) {
+                        if (piece.shape[r][c]) {
+                            let row = piece.y + r;
+                            let col = piece.x + c;
+                            if (row >= 0 && col >= 0 && row < ROWS && col < COLS) {
+                                board[row][col] = piece.color;
+                            }
+                        }
+                    }
                 }
             }
-        }
-    }
-    return false;
-}
 
-// Merge piece into board
-function merge(piece) {
-    for (let r = 0; r < piece.shape.length; r++) {
-        for (let c = 0; c < piece.shape[r].length; c++) {
-            if (piece.shape[r][c]) {
-                let row = piece.y + r;
-                let col = piece.x + c;
-                if (row >= 0 && col >= 0 && row < ROWS && col < COLS) {
-                    board[row][col] = piece.color;
+            // Clear full lines
+            function clearLines() {
+                let linesCleared = 0;
+                for (let r = ROWS - 1; r >= 0; r--) {
+                    if (board[r].every(cell => cell)) {
+                        board.splice(r, 1);
+                        board.unshift(new Array(COLS).fill(0));
+                        linesCleared++;
+                        r++; // recheck current row
+                    }
+                }
+                if (linesCleared > 0) {
+                    lines += linesCleared;
+                    if (linesCleared === 1) {
+                        score += linesCleared * 100;
+                    } else if (linesCleared === 2) {
+                        score += linesCleared * 300;
+                    } else if (linesCleared === 3) {
+                        score += linesCleared * 500;
+                    } else if (linesCleared === 4) {
+                        score += linesCleared * 800;
+                    }
+                    level = Math.floor(lines / 10) + 1;
+                    dropInterval = Math.max(100, 1000 - level * 100);
+                    updateStats();
                 }
             }
-        }
-    }
-}
 
-// Clear full lines
-function clearLines() {
-    let linesCleared = 0;
-    for (let r = ROWS - 1; r >= 0; r--) {
-        if (board[r].every(cell => cell)) {
-            board.splice(r, 1);
-            board.unshift(new Array(COLS).fill(0));
-            linesCleared++;
-            r++; // recheck current row
-        }
-    }
-    if (linesCleared > 0) {
-        lines += linesCleared;
-        score += linesCleared * 100;
-        level = Math.floor(lines / 10) + 1;
-        dropInterval = Math.max(100, 1000 - level * 100);
-        updateStats();
-    }
-}
-
-// Rotate piece
-function rotate(piece) {
-    const newShape = piece.shape[0].map((_, i) => piece.shape.map(row => row[i])).reverse();
-    const newPiece = { ...piece, shape: newShape };
-    if (!collision(piece.x, piece.y, newPiece)) {
-        piece.shape = newShape;
-    }
-}
-
-// Drop piece by one row
-function drop() {
-    if (!currentPiece) return;
-    if (!collision(currentPiece.x, currentPiece.y + 1, currentPiece)) {
-        currentPiece.y++;
-    } else {
-        merge(currentPiece);
-        clearLines();
-        currentPiece = nextPiece;
-        nextPiece = getRandomPiece();
-        if (collision(currentPiece.x, currentPiece.y, currentPiece)) {
-            gameOver = true;
-            finalScoreDisplay.textContent = score;
-            gameOverModal.classList.remove('hidden');
-            cancelAnimationFrame(animationFrameId);
-            return;
-        }
-    }
-    drawBoard();
-    drawNextPiece();
-}
-
-// Update stats
-function updateStats() {
-    scoreDisplay.textContent = score;
-    levelDisplay.textContent = level;
-    linesDisplay.textContent = lines;
-    speedDisplay.textContent = level + 'x';
-}
-
-// Game loop
-function update(time = 0) {
-    if (isPaused || gameOver) return;
-    if (!dropStart) dropStart = time;
-    const deltaTime = time - dropStart;
-    if (deltaTime > dropInterval) {
-        drop();
-        dropStart = time;
-    }
-    animationFrameId = requestAnimationFrame(update);
-}
-
-// Controls
-document.addEventListener('keydown', (e) => {
-    if (gameOver || isPaused || !currentPiece) return;
-    switch (e.key) {
-        case 'ArrowLeft':
-            if (!collision(currentPiece.x - 1, currentPiece.y, currentPiece)) currentPiece.x--;
-            break;
-        case 'ArrowRight':
-            if (!collision(currentPiece.x + 1, currentPiece.y, currentPiece)) currentPiece.x++;
-            break;
-        case 'ArrowDown':
-            drop();
-            break;
-        case 'ArrowUp':
-            rotate(currentPiece);
-            break;
-        case ' ': // Hard drop
-            while (!collision(currentPiece.x, currentPiece.y + 1, currentPiece)) {
-                currentPiece.y++;
+            // Rotate piece
+            function rotate(piece) {
+                const newShape = piece.shape[0].map((_, i) => piece.shape.map(row => row[i])).reverse();
+                const newPiece = { ...piece, shape: newShape };
+                if (!collision(piece.x, piece.y, newPiece)) {
+                    piece.shape = newShape;
+                }
             }
-            drop();
-            break;
-        case 'p':
-        case 'P':
-            pauseGame();
-            break;
-    }
-    drawBoard();
-});
 
-// Game control buttons
-startBtn.addEventListener('click', () => {
-    startScreen.classList.add('hidden');
-    startGame();
-});
+            // Drop piece by one row
+            function drop() {
+                if (!currentPiece) return;
+                if (!collision(currentPiece.x, currentPiece.y + 1, currentPiece)) {
+                    currentPiece.y++;
+                } else {
+                    merge(currentPiece);
+                    clearLines();
+                    currentPiece = nextPiece;
+                    nextPiece = getRandomPiece();
+                    if (collision(currentPiece.x, currentPiece.y, currentPiece)) {
+                        gameOver = true;
+                        finalScoreDisplay.textContent = score;
+                        gameOverModal.classList.remove('hidden');
+                        cancelAnimationFrame(animationFrameId);
+                        return;
+                    }
+                }
+                drawBoard();
+                drawNextPiece();
+            }
 
-restartBtn.addEventListener('click', restartGame);
-restartBtn2.addEventListener('click', restartGame);
-resumeBtn.addEventListener('click', resumeGame);
+            // Update stats
+            function updateStats() {
+                scoreDisplay.textContent = score;
+                levelDisplay.textContent = level;
+                linesDisplay.textContent = lines;
+                speedDisplay.textContent = level + 'x';
+            }
 
-function startGame() {
-    board = Array(ROWS).fill().map(() => Array(COLS).fill(0));
-    score = 0;
-    level = 1;
-    lines = 0;
-    gameOver = false;
-    isPaused = false;
-    dropInterval = 1000;
-    currentPiece = getRandomPiece();
-    nextPiece = getRandomPiece();
-    initBoard();
-    initNextPieceDisplay();
-    updateStats();
-    drawBoard();
-    drawNextPiece();
-    dropStart = null;
-    animationFrameId = requestAnimationFrame(update);
-}
+            // Game loop
+            function update(time = 0) {
+                if (isPaused || gameOver) return;
+                if (!dropStart) dropStart = time;
+                const deltaTime = time - dropStart;
+                if (deltaTime > dropInterval) {
+                    drop();
+                    dropStart = time;
+                }
+                animationFrameId = requestAnimationFrame(update);
+            }
 
-function restartGame() {
-    gameOverModal.classList.add('hidden');
-    pauseScreen.classList.add('hidden');
-    startGame();
-}
+            // Controls
+            document.addEventListener('keydown', (e) => {
+                if (gameOver || isPaused || !currentPiece) return;
+                switch (e.key) {
+                    case 'ArrowLeft':
+                        if (!collision(currentPiece.x - 1, currentPiece.y, currentPiece)) currentPiece.x--;
+                        break;
+                    case 'ArrowRight':
+                        if (!collision(currentPiece.x + 1, currentPiece.y, currentPiece)) currentPiece.x++;
+                        break;
+                    case 'ArrowDown':
+                        drop();
+                        score += 10;
+                        updateStats();
+                        break;
+                    case 'ArrowUp':
+                        rotate(currentPiece);
+                        break;
+                    case 'x': // Hard drop
+                        score += 10 * (ROWS - currentPiece.x);
+                        updateStats();
+                        while (!collision(currentPiece.x, currentPiece.y + 1, currentPiece)) {
+                            currentPiece.y++;
+                        }
+                        drop();
+                        break;
+                    case 'p':
+                    case 'P':
+                        pauseGame();
+                        break;
+                }
+                drawBoard();
+            });
 
-function pauseGame() {
-    isPaused = true;
-    pauseScreen.classList.remove('hidden');
-    cancelAnimationFrame(animationFrameId);
-}
+            // Game control buttons
+            startBtn.addEventListener('click', () => {
+                startScreen.classList.add('hidden');
+                startGame();
+            });
 
-function resumeGame() {
-    isPaused = false;
-    pauseScreen.classList.add('hidden');
-    dropStart = null;
-    animationFrameId = requestAnimationFrame(update);
-}
+            restartBtn.addEventListener('click', restartGame);
+            restartBtn2.addEventListener('click', restartGame);
+            resumeBtn.addEventListener('click', resumeGame);
 
-});
-</script>
+            function startGame() {
+                board = Array(ROWS).fill().map(() => Array(COLS).fill(0));
+                score = 0;
+                level = 1;
+                lines = 0;
+                gameOver = false;
+                isPaused = false;
+                dropInterval = 1000;
+                currentPiece = getRandomPiece();
+                nextPiece = getRandomPiece();
+                initBoard();
+                initNextPieceDisplay();
+                updateStats();
+                drawBoard();
+                drawNextPiece();
+                dropStart = null;
+                animationFrameId = requestAnimationFrame(update);
+                aiBotPlay();
+            }
+
+            function aiBotPlay() {
+
+            }
+
+            function restartGame() {
+                gameOverModal.classList.add('hidden');
+                pauseScreen.classList.add('hidden');
+                startGame();
+            }
+
+            function pauseGame() {
+                isPaused = true;
+                pauseScreen.classList.remove('hidden');
+                cancelAnimationFrame(animationFrameId);
+            }
+
+            function resumeGame() {
+                isPaused = false;
+                pauseScreen.classList.add('hidden');
+                dropStart = null;
+                animationFrameId = requestAnimationFrame(update);
+            }
+
+            });
+    </script>
 </body>
 </html>
