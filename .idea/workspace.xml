@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cca3b7d9-d61a-4bac-911d-4af5c3f7935e" name="Changes" comment="Added board log. TODO make only first piece drop at all possible positions">
+    <list default="true" id="cca3b7d9-d61a-4bac-911d-4af5c3f7935e" name="Changes" comment="Added cloning board and piece. Added evaluation function and counting holes function. TODO other utility functions and simulation of droping and evaluating">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/index.html" afterDir="false" />
     </list>
@@ -105,7 +105,7 @@
       <option name="presentableId" value="Default" />
       <updated>1748894230121</updated>
       <workItem from="1748894232177" duration="3130000" />
-      <workItem from="1748975606312" duration="3101000" />
+      <workItem from="1748975606312" duration="8187000" />
     </task>
     <task id="LOCAL-00001" summary="Added logic for bot playing the moves">
       <option name="closed" value="true" />
@@ -123,7 +123,15 @@
       <option name="project" value="LOCAL" />
       <updated>1748929708502</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Added cloning board and piece. Added evaluation function and counting holes function. TODO other utility functions and simulation of droping and evaluating">
+      <option name="closed" value="true" />
+      <created>1748978914721</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1748978914721</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -132,9 +140,10 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Added logic for bot playing the moves" />
     <MESSAGE value="Added board log. TODO make only first piece drop at all possible positions" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added board log. TODO make only first piece drop at all possible positions" />
+    <MESSAGE value="Added cloning board and piece. Added evaluation function and counting holes function. TODO other utility functions and simulation of droping and evaluating" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added cloning board and piece. Added evaluation function and counting holes function. TODO other utility functions and simulation of droping and evaluating" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Tetris$Tetris.coverage" NAME="Tetris Coverage Results" MODIFIED="1748977702107" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/Tetris$Tetris.coverage" NAME="Tetris Coverage Results" MODIFIED="1748979989279" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
   </component>
 </project>

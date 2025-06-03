@@ -577,7 +577,7 @@
                 }
 
                 let hole = count_holes();
-                console.log(hole)
+                let landing_height = get_landing_height();
                 drawBoard();
                 drawNextPiece();
                 animationFrameId = requestAnimationFrame(aiBotPlay);
@@ -636,6 +636,104 @@
                 }
 
                 return holes;
+            }
+
+            function get_landing_height() {
+                return ROWS - currentPiece.y;
+            }
+
+            function count_eroded_cells(lastPieceCells) {
+                let rowsCleared = [];
+                // Step 1: Identify full rows
+                for (let r = ROWS - 1; r >= 0; r--) {
+                    if (board[r].every(cell => cell)) {
+                        rowsCleared.push(r);
+                    }
+                }
+
+                // Step 2: Count how many cells from last piece are in cleared rows
+                const isHole = (row, col) => {
+                    for (let r = row - 1; r >= 0; r--) {
+                        if (board[r][col]) {
+                            return true;
+                        }
+                    }
+                    return false;
+                };
+
+                let holesFilledByPiece = 0;
+
+                for (const { row, col } of lastPieceCells) {
+                    if (rowsCleared.includes(row)) {
+                        if (isHole(row, col)) {
+                            holesFilledByPiece++;
+                        }
+                    }
+                }
+
+                // Step 3: Remove cleared rows
+                for (const r of rowsCleared) {
+                    board.splice(r, 1);
+                    board.unshift(new Array(COLS).fill(0));
+                }
+
+                // Step 4: Calculate eroded piece cells
+                return rowsCleared.length * holesFilledByPiece;
+            }
+
+            function calculate_cumulative_wells() {
+                let cumulative_wells = 0;
+                for (let x = 0; x < COLS; x++) {
+                    let well_depth = 0;
+                    for (let y = ROWS; y > 0; y--) {
+                        if (board[y][x] === 0) {
+                            well_depth += 1;
+                        } else {
+                            cumulative_wells += Math.floor(well_depth * (well_depth + 1) / 2);
+                            well_depth = 0;
+                        }
+                    }
+                    cumulative_wells += Math.floor(well_depth * (well_depth + 1) / 2);
+                }
+                return cumulative_wells;
+            }
+
+            function count_row_transitions() {
+                let row_transitions = 0;
+
+                for (let y=0; y < ROWS; y++) {
+                    let previous_block = 1;
+                    for (let x=0; x < COLS; x++) {
+                        if (board[y][x] === 0 && previous_block !== 0) {
+                            row_transitions += 1;
+                        }
+                        previous_block = board[y][x]
+                    }
+                    if (previous_block === 0) {
+                        previous_block += 1;
+                    }
+                }
+
+                return row_transitions;
+            }
+
+            function count_column_transitions() {
+                let column_transitions = 0;
+
+                for (let x=0; x < COLS; x++) {
+                    let previous_block = 1;
+                    for (let y=ROWS; y > 0; y--) {
+                        if (board[y][x] === 0 && previous_block !== 0) {
+                            column_transitions += 1;
+                        }
+                        previous_block = board[y][x]
+                    }
+                    if (previous_block === 0) {
+                        previous_block += 1;
+                    }
+                }
+
+                return column_transitions;
             }
 
 
