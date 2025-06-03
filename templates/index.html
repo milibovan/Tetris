@@ -551,8 +551,29 @@
                 aiBotPlay();
             }
 
-            function aiBotPlay() {
+            function aiBotPlay(time = 0) {
+                if (isPaused || gameOver) return;
+                if (!dropStart) dropStart = time;
+                const deltaTime = time - dropStart;
+                if (deltaTime > dropInterval) {
+                    drop();
+                    dropStart = time;
+                }
 
+                {#console.log(currentPiece.shape.length);#}
+                for (i = 0; i < COLS - currentPiece.shape.length; i++) {
+                    currentPiece.x = i;
+                    {#console.log(currentPiece.x)#}
+
+                }
+
+                while (!collision(currentPiece.x, currentPiece.y + 1, currentPiece)) {
+                    currentPiece.y++;
+                }
+
+                drawBoard();
+                drawNextPiece();
+                animationFrameId = requestAnimationFrame(aiBotPlay);
             }
 
             function restartGame() {
