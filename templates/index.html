@@ -484,8 +484,6 @@
                     drop();
                     dropStart = time;
                 }
-
-                getAllRotations(currentPiece)
                 animationFrameId = requestAnimationFrame(update);
             }
 
@@ -550,7 +548,7 @@
                 drawNextPiece();
                 dropStart = null;
                 animationFrameId = requestAnimationFrame(update);
-                //aiBotPlay();
+                aiBotPlay();
             }
 
             function aiBotPlay(time = 0) {
@@ -562,13 +560,20 @@
                     dropStart = time;
                 }
 
-                cloneBoard(board)
-                clonePiece(currentPiece)
+                let cloned_board = cloneBoard(board)
+                let cloned_piece = clonePiece(currentPiece)
 
-                currentPiece.x = 0;
+                let all_rotations = getAllRotations(cloned_piece);
 
-                while (!collision(currentPiece.x, currentPiece.y + 1, currentPiece)) {
-                    currentPiece.y++;
+                let best_move = evaluate(all_rotations, cloned_board, cloned_piece)
+
+                if(best_move) {
+                    currentPiece.x = best_move.x;
+                    currentPiece.y = best_move.y;
+                    currentPiece.shape = best_move.shape;
+
+                    {#placePieceAndGetCells(board, currentPiece);#}
+                    {#spawnNextPiece();#}
                 }
 
                 drawBoard();
@@ -577,7 +582,7 @@
             }
 
             function cloneBoard(board) {
-                return board.map(row => [...row]);
+                return board.map(row => row.slice());
             }
 
             function clonePiece(piece) {
@@ -598,12 +603,16 @@
                     const key = JSON.stringify(shape);
                     if (!seen.has(key)) {
                         seen.add(key);
-                        rotations.push(shape);
+                        rotations.push({
+                            shape: shape,
+                            x: piece.x,
+                            y: piece.y,
+                            color: piece.color
+                        });
                     }
-                    shape = rotateShape(shape); // rotateShape returns a new rotated array
+                    shape = rotateShape(shape);
                 }
 
-                console.log(rotations)
                 return rotations;
             }
 
@@ -614,40 +623,80 @@
             function cloneShape(shape) {
                 return shape.map(row => [...row]);
             }
-            function evaluate(move) {
+
+            function evaluate(rotations, cloned_board, piece) {
                 let best_score = -Infinity;
-                let best_move = null;
-                
-                let holes = count_holes()
-                let landing_height = get_landing_height()
-                let eroded_cells = count_eroded_cells()
-                let cumulative_wells = calculate_cumulative_wells()
-                let row_transitions = count_row_transitions()
-                let column_transitions = count_column_transitions()
+                let best_move = new Map();
 
-                let utility_value = -4 * holes - cumulative_wells - row_transitions - column_transitions - landing_height + eroded_cells;
-                if (utility_value < -1e5 || utility_value > 1e5) {
-                    throw new Error("Invalid utility");
+                for (let rotation of rotations) {
+                    for (let x = -2; x < COLS; x++) {
+                        let cloned_piece = {
+                            ...piece,
+                            shape: rotation.shape,
+                            x: x,
+                            y: 0
+                        };
+
+                        // Drop the piece to the bottom
+                        while (!collision(cloned_piece.x, cloned_piece.y + 1, cloned_piece)) {
+                            cloned_piece.y++;
+                        }
+
+                        let placedCells = placePieceAndGetCells(cloned_board, cloned_piece);
+
+                        // Calculate evaluation metrics
+                        let holes = count_holes(cloned_board);
+                        let landing_height = get_landing_height(cloned_piece);
+                        let eroded_cells = count_eroded_cells(placedCells, cloned_board);
+                        let cumulative_wells = calculate_cumulative_wells(cloned_board);
+                        let row_transitions = count_row_transitions(cloned_board);
+                        let column_transitions = count_column_transitions(cloned_board);
+
+                        let utility_value = -4 * holes - cumulative_wells - row_transitions - column_transitions - landing_height + eroded_cells;
+
+                        if (utility_value < -1e5 || utility_value > 1e5) {
+                            throw new Error("Invalid utility");
+                        }
+
+                        if (utility_value > best_score) {
+                            best_score = utility_value;
+                            best_move = { x: cloned_piece.x, y: cloned_piece.y, shape: cloned_piece.shape };
+                        }
+                    }
                 }
 
-                if (utility_value > best_score) {
-                    best_score = utility_value;
-                    best_move = move;
-                }
-
-                return best_score, best_move;
+                return best_move;
             }
 
-            function count_holes() {
+            function placePieceAndGetCells(board, piece) {
+                let placedCells = [];
+
+                piece.shape.forEach((row, dy) => {
+                    row.forEach((value, dx) => {
+                        if (value) {
+                            const x = piece.x + dx;
+                            const y = piece.y + dy;
+                            if (y >= 0 && y < ROWS && x >= 0 && x < COLS) {
+                                board[y][x] = piece.color || 1;
+                                placedCells.push({ row: y, col: x });
+                            }
+                        }
+                    });
+                });
+
+                return placedCells;
+            }
+
+            function count_holes(cloned_board) {
                 let holes = 0;
 
                 // Get through all columns and see if we can find empty cell where block is above it
                 for (let x = 0; x < COLS; x++) {
                     let block_found = false;
                     for (let y = 0; y < ROWS; y++) {
-                        if (board[y][x] !== 0) {
+                        if (cloned_board[y][x] !== 0) {
                             block_found = true;
-                        } else if (board[y][x] === 0 && block_found) {
+                        } else if (cloned_board[y][x] === 0 && block_found) {
                             holes += 1;
                         }
                     }
@@ -656,23 +705,21 @@
                 return holes;
             }
 
-            function get_landing_height() {
-                return ROWS - currentPiece.y;
+            function get_landing_height(clonedPiece) {
+                return ROWS - clonedPiece.y;
             }
 
-            function count_eroded_cells(lastPieceCells) {
+            function count_eroded_cells(lastPieceCells, cloned_board) {
                 let rowsCleared = [];
-                // Step 1: Identify full rows
                 for (let r = ROWS - 1; r >= 0; r--) {
-                    if (board[r].every(cell => cell)) {
+                    if (cloned_board[r].every(cell => cell)) {
                         rowsCleared.push(r);
                     }
                 }
 
-                // Step 2: Count how many cells from last piece are in cleared rows
                 const isHole = (row, col) => {
                     for (let r = row - 1; r >= 0; r--) {
-                        if (board[r][col]) {
+                        if (cloned_board[r][col]) {
                             return true;
                         }
                     }
@@ -689,22 +736,20 @@
                     }
                 }
 
-                // Step 3: Remove cleared rows
                 for (const r of rowsCleared) {
-                    board.splice(r, 1);
-                    board.unshift(new Array(COLS).fill(0));
+                    cloned_board.splice(r, 1);
+                    cloned_board.unshift(new Array(COLS).fill(0));
                 }
 
-                // Step 4: Calculate eroded piece cells
                 return rowsCleared.length * holesFilledByPiece;
             }
 
-            function calculate_cumulative_wells() {
+            function calculate_cumulative_wells(cloned_board) {
                 let cumulative_wells = 0;
                 for (let x = 0; x < COLS; x++) {
                     let well_depth = 0;
-                    for (let y = ROWS; y > 0; y--) {
-                        if (board[y][x] === 0) {
+                    for (let y = ROWS - 1; y >= 0; y--) {
+                        if (cloned_board[y][x] === 0) {
                             well_depth += 1;
                         } else {
                             cumulative_wells += Math.floor(well_depth * (well_depth + 1) / 2);
@@ -716,16 +761,16 @@
                 return cumulative_wells;
             }
 
-            function count_row_transitions() {
+            function count_row_transitions(cloned_board) {
                 let row_transitions = 0;
 
                 for (let y=0; y < ROWS; y++) {
                     let previous_block = 1;
                     for (let x=0; x < COLS; x++) {
-                        if (board[y][x] === 0 && previous_block !== 0) {
+                        if (cloned_board[y][x] === 0 && previous_block !== 0) {
                             row_transitions += 1;
                         }
-                        previous_block = board[y][x]
+                        previous_block = cloned_board[y][x]
                     }
                     if (previous_block === 0) {
                         previous_block += 1;
@@ -735,16 +780,16 @@
                 return row_transitions;
             }
 
-            function count_column_transitions() {
+            function count_column_transitions(cloned_board) {
                 let column_transitions = 0;
 
-                for (let x=0; x < COLS; x++) {
+                for (let x = 0; x < COLS; x++) {
                     let previous_block = 1;
-                    for (let y=ROWS; y > 0; y--) {
-                        if (board[y][x] === 0 && previous_block !== 0) {
+                    for (let y = ROWS - 1; y >= 0; y--) {
+                        if (cloned_board[y][x] === 0 && previous_block !== 0) {
                             column_transitions += 1;
                         }
-                        previous_block = board[y][x]
+                        previous_block = cloned_board[y][x]
                     }
                     if (previous_block === 0) {
                         previous_block += 1;
