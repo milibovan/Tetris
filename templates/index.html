@@ -443,7 +443,6 @@
                 if (!collision(piece.x, piece.y, newPiece)) {
                     piece.shape = newShape;
                 }
-                return newPiece
             }
 
             // Drop piece by one row
@@ -591,20 +590,30 @@
             }
 
             function getAllRotations(piece) {
-                let all_rotations = [];
-                if (piece.shape === SHAPES.S || piece.shape === SHAPES.Z || piece.shape === SHAPES.I) {
-                    all_rotations.push(rotate(piece))
-                } else if (piece.shape === SHAPES.J || piece.shape === SHAPES.L || piece.shape === SHAPES.T) {
-                    all_rotations.push(rotate(piece).shape)
-                    all_rotations.push(rotate(rotate(piece)).shape)
-                    all_rotations.push(rotate(rotate(rotate(piece))).shape)
-                }
-                all_rotations.push(piece.shape);
+                let rotations = [];
+                let seen = new Set();
 
-                console.log(all_rotations);
-                return all_rotations;
+                let shape = cloneShape(piece.shape);
+                for (let i = 0; i < 4; i++) {
+                    const key = JSON.stringify(shape);
+                    if (!seen.has(key)) {
+                        seen.add(key);
+                        rotations.push(shape);
+                    }
+                    shape = rotateShape(shape); // rotateShape returns a new rotated array
+                }
+
+                console.log(rotations)
+                return rotations;
             }
 
+            function rotateShape(shape) {
+                return shape[0].map((_, i) => shape.map(row => row[i])).reverse();
+            }
+
+            function cloneShape(shape) {
+                return shape.map(row => [...row]);
+            }
             function evaluate(move) {
                 let best_score = -Infinity;
                 let best_move = null;
