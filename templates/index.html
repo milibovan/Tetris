@@ -569,11 +569,29 @@
 
                 if(best_move) {
                     currentPiece.x = best_move.x;
-                    currentPiece.y = best_move.y;
                     currentPiece.shape = best_move.shape;
 
-                    {#placePieceAndGetCells(board, currentPiece);#}
-                    {#spawnNextPiece();#}
+                    // Drop to bottom
+                    while (!collision(currentPiece.x, currentPiece.y + 1, currentPiece)) {
+                        currentPiece.y++;
+                    }
+
+                    // Merge the piece into the board
+                    merge(currentPiece);
+
+                    // Clear lines, spawn new piece
+                    clearLines();
+                    currentPiece = nextPiece;
+                    nextPiece = getRandomPiece();
+
+                    if (collision(currentPiece.x, currentPiece.y, currentPiece)) {
+                        gameOver = true;
+                        finalScoreDisplay.textContent = score;
+                        gameOverModal.classList.remove('hidden');
+                        cancelAnimationFrame(animationFrameId);
+                        return;
+                    }
+
                 }
 
                 drawBoard();
@@ -642,7 +660,7 @@
                             cloned_piece.y++;
                         }
 
-                        let placedCells = placePieceAndGetCells(cloned_board, cloned_piece);
+                        let placedCells = placePieceAndGetCells(cloneBoard(cloned_board), cloned_piece);
 
                         // Calculate evaluation metrics
                         let holes = count_holes(cloned_board);
@@ -652,7 +670,7 @@
                         let row_transitions = count_row_transitions(cloned_board);
                         let column_transitions = count_column_transitions(cloned_board);
 
-                        let utility_value = -4 * holes - cumulative_wells - row_transitions - column_transitions - landing_height + eroded_cells;
+                        let utility_value = -4*holes - 4*cumulative_wells - row_transitions - column_transitions - landing_height + eroded_cells;
 
                         if (utility_value < -1e5 || utility_value > 1e5) {
                             throw new Error("Invalid utility");

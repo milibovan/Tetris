@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cca3b7d9-d61a-4bac-911d-4af5c3f7935e" name="Changes" comment="Fixed rotating logic">
+    <list default="true" id="cca3b7d9-d61a-4bac-911d-4af5c3f7935e" name="Changes" comment="Maked bot play. TODO To improve evaluation">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/index.html" afterDir="false" />
     </list>
@@ -107,7 +107,7 @@
       <workItem from="1748894232177" duration="3130000" />
       <workItem from="1748975606312" duration="8261000" />
       <workItem from="1749037860170" duration="387000" />
-      <workItem from="1749233242436" duration="9697000" />
+      <workItem from="1749233242436" duration="10500000" />
     </task>
     <task id="LOCAL-00001" summary="Added logic for bot playing the moves">
       <option name="closed" value="true" />
@@ -157,7 +157,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749391563533</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Maked bot play. TODO To improve evaluation">
+      <option name="closed" value="true" />
+      <created>1749396223099</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1749396223099</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -170,9 +178,10 @@
     <MESSAGE value="Added rest utility functions. TODO implement simulation and evaluation" />
     <MESSAGE value="Added function for getting all rotations. TODO fix the logic" />
     <MESSAGE value="Fixed rotating logic" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed rotating logic" />
+    <MESSAGE value="Maked bot play. TODO To improve evaluation" />
+    <option name="LAST_COMMIT_MESSAGE" value="Maked bot play. TODO To improve evaluation" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Tetris$Tetris.coverage" NAME="Tetris Coverage Results" MODIFIED="1749395758594" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/Tetris$Tetris.coverage" NAME="Tetris Coverage Results" MODIFIED="1749396471661" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
   </component>
 </project>
