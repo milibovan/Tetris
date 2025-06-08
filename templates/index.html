@@ -443,6 +443,7 @@
                 if (!collision(piece.x, piece.y, newPiece)) {
                     piece.shape = newShape;
                 }
+                return newPiece
             }
 
             // Drop piece by one row
@@ -484,6 +485,8 @@
                     drop();
                     dropStart = time;
                 }
+
+                getAllRotations(currentPiece)
                 animationFrameId = requestAnimationFrame(update);
             }
 
@@ -548,7 +551,7 @@
                 drawNextPiece();
                 dropStart = null;
                 animationFrameId = requestAnimationFrame(update);
-                aiBotPlay();
+                //aiBotPlay();
             }
 
             function aiBotPlay(time = 0) {
@@ -560,24 +563,15 @@
                     dropStart = time;
                 }
 
-                if (time = 0) {
+                cloneBoard(board)
+                clonePiece(currentPiece)
 
-                }
-
-                var piece = currentPiece;
-
-                for (i = 0; i < COLS - currentPiece.shape.length; i++) {
-                    currentPiece.x = i;
-                    {#console.log(currentPiece.x)#}
-
-                }
+                currentPiece.x = 0;
 
                 while (!collision(currentPiece.x, currentPiece.y + 1, currentPiece)) {
                     currentPiece.y++;
                 }
 
-                let hole = count_holes();
-                let landing_height = get_landing_height();
                 drawBoard();
                 drawNextPiece();
                 animationFrameId = requestAnimationFrame(aiBotPlay);
@@ -596,12 +590,22 @@
                 };
             }
 
-            function getRotatedShape(shape) {
-                return shape[0].map((_, i) => shape.map(row => row[i])).reverse();
+            function getAllRotations(piece) {
+                let all_rotations = [];
+                if (piece.shape === SHAPES.S || piece.shape === SHAPES.Z || piece.shape === SHAPES.I) {
+                    all_rotations.push(rotate(piece))
+                } else if (piece.shape === SHAPES.J || piece.shape === SHAPES.L || piece.shape === SHAPES.T) {
+                    all_rotations.push(rotate(piece).shape)
+                    all_rotations.push(rotate(rotate(piece)).shape)
+                    all_rotations.push(rotate(rotate(rotate(piece))).shape)
+                }
+                all_rotations.push(piece.shape);
+
+                console.log(all_rotations);
+                return all_rotations;
             }
 
-
-            function evaluate() {
+            function evaluate(move) {
                 let best_score = -Infinity;
                 let best_move = null;
                 
@@ -617,7 +621,12 @@
                     throw new Error("Invalid utility");
                 }
 
-                return utility_value;
+                if (utility_value > best_score) {
+                    best_score = utility_value;
+                    best_move = move;
+                }
+
+                return best_score, best_move;
             }
 
             function count_holes() {
