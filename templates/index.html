@@ -669,8 +669,20 @@
                         let cumulative_wells = calculate_cumulative_wells(cloned_board);
                         let row_transitions = count_row_transitions(cloned_board);
                         let column_transitions = count_column_transitions(cloned_board);
+                        let bumpiness = getBumpiness(getColumnHeights(cloned_board));
+                        let average_height = getAggregateHeight(getColumnHeights(cloned_board));
+                        let max_height = getMaxHeight(getColumnHeights(cloned_board));
 
-                        let utility_value = -4*holes - 4*cumulative_wells - row_transitions - column_transitions - landing_height + eroded_cells;
+                        let utility_value =
+    -0.51066 * average_height +
+    +10.760666 * eroded_cells +
+    -1.35663 * holes +
+    -0.184483 * bumpiness +
+    -0.35 * row_transitions +
+    -0.35 * column_transitions +
+    -0.78 * cumulative_wells +
+    -2.45 * max_height +
+    -0.2 * landing_height;
 
                         if (utility_value < -1e5 || utility_value > 1e5) {
                             throw new Error("Invalid utility");
@@ -817,6 +829,38 @@
                 return column_transitions;
             }
 
+            function getColumnHeights(board) {
+                const rows = board.length;
+                const cols = board[0].length;
+                const heights = Array(cols).fill(0);
+
+                for (let col = 0; col < cols; col++) {
+                    for (let row = 0; row < rows; row++) {
+                        if (board[row][col] !== 0) {
+                            heights[col] = rows - row;
+                            break;
+                        }
+                    }
+                }
+
+                return heights;
+            }
+
+            function getAggregateHeight(heights) {
+                return heights.reduce((a, b) => a + b, 0);
+            }
+
+            function getMaxHeight(heights) {
+                return Math.max(...heights);
+            }
+
+            function getBumpiness(heights) {
+                let bumpiness = 0;
+                for (let i = 0; i < heights.length - 1; i++) {
+                    bumpiness += Math.abs(heights[i] - heights[i + 1]);
+                }
+                return bumpiness;
+            }
 
             function restartGame() {
                 gameOverModal.classList.add('hidden');
