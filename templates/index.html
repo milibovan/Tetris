@@ -438,12 +438,33 @@
 
             // Rotate piece
             function rotate(piece) {
-                const newShape = piece.shape[0].map((_, i) => piece.shape.map(row => row[i])).reverse();
+                // clockwise rotation (transpose + reverse rows)
+                const newShape = piece.shape[0].map((_, i) =>
+                    piece.shape.map(row => row[i]).reverse()
+                );
+
                 const newPiece = { ...piece, shape: newShape };
+
+                // If no collision, apply directly
                 if (!collision(piece.x, piece.y, newPiece)) {
                     piece.shape = newShape;
+                    return;
                 }
+
+                // Try wall kicks: shift left/right
+                const shifts = [-1, 1, -2, 2]; // how far to move left/right
+                for (let shift of shifts) {
+                    if (!collision(piece.x + shift, piece.y, newPiece)) {
+                        piece.x += shift;
+                        piece.shape = newShape;
+                        return;
+                    }
+                }
+
+                // If all fail → do nothing (rotation cancelled)
             }
+
+
 
             // Drop piece by one row
             function drop() {
@@ -478,14 +499,31 @@
             // Game loop
             function update(time = 0) {
                 if (isPaused || gameOver) return;
+
                 if (!dropStart) dropStart = time;
+
+                const interval = softDropping ? 50 : dropInterval;
                 const deltaTime = time - dropStart;
-                if (deltaTime > dropInterval) {
+
+                if (deltaTime > interval) {
                     drop();
                     dropStart = time;
                 }
                 animationFrameId = requestAnimationFrame(update);
             }
+
+            let softDropping = false;
+
+            document.addEventListener('keydown', e => {
+                if (e.code === 'ArrowDown') {
+                    softDropping = true;
+                }
+            });
+            document.addEventListener('keyup', e => {
+                if (e.code === 'ArrowDown') {
+                    softDropping = false;
+                }
+            });
 
             // Controls
             document.addEventListener('keydown', (e) => {
@@ -534,7 +572,7 @@
             function startGame() {
                 board = Array(ROWS).fill().map(() => Array(COLS).fill(0));
                 score = 0;
-                level = 1;
+                level = 10;
                 lines = 0;
                 gameOver = false;
                 isPaused = false;
@@ -548,7 +586,7 @@
                 drawNextPiece();
                 dropStart = null;
                 animationFrameId = requestAnimationFrame(update);
-                aiBotPlay();
+                {#aiBotPlay();#}
             }
 
             function aiBotPlay(time = 0) {
@@ -869,10 +907,19 @@
             }
 
             function pauseGame() {
-                isPaused = true;
-                pauseScreen.classList.remove('hidden');
-                cancelAnimationFrame(animationFrameId);
+                if (isPaused) {
+                    // Unpause
+                    isPaused = false;
+                    pauseScreen.classList.add('hidden');
+                    animationFrameId = requestAnimationFrame(update);
+                } else {
+                    // Pause
+                    isPaused = true;
+                    pauseScreen.classList.remove('hidden');
+                    cancelAnimationFrame(animationFrameId);
+                }
             }
+
 
             function resumeGame() {
                 isPaused = false;
