@@ -2,3 +2,4 @@
 .vscode
 .lh
 .venv
+__pycache__

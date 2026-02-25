@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="cca3b7d9-d61a-4bac-911d-4af5c3f7935e" name="Changes" comment="Added new features, small improvement. TODO Investigate genetic algorithm">
+    <list default="true" id="cca3b7d9-d61a-4bac-911d-4af5c3f7935e" name="Changes" comment="Fixed rotation to be clockwise, and add wall-kick. Added faster down arrow drop. TODO Add exponential score growth.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/index.html" afterDir="false" />
     </list>
@@ -110,7 +110,8 @@
       <workItem from="1749233242436" duration="11392000" />
       <workItem from="1749582892519" duration="1260000" />
       <workItem from="1755875231202" duration="103000" />
-      <workItem from="1755944407754" duration="4043000" />
+      <workItem from="1755944407754" duration="5390000" />
+      <workItem from="1755971887259" duration="133000" />
     </task>
     <task id="LOCAL-00001" summary="Added logic for bot playing the moves">
       <option name="closed" value="true" />
@@ -192,7 +193,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749584107987</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="Fixed rotation to be clockwise, and add wall-kick. Added faster down arrow drop. TODO Add exponential score growth.">
+      <option name="closed" value="true" />
+      <created>1755969121898</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1755969121898</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -209,9 +218,10 @@
     <MESSAGE value="Fixed flying tetromino problem. TODO Improve evaluation" />
     <MESSAGE value="Added gitignore" />
     <MESSAGE value="Added new features, small improvement. TODO Investigate genetic algorithm" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added new features, small improvement. TODO Investigate genetic algorithm" />
+    <MESSAGE value="Fixed rotation to be clockwise, and add wall-kick. Added faster down arrow drop. TODO Add exponential score growth." />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed rotation to be clockwise, and add wall-kick. Added faster down arrow drop. TODO Add exponential score growth." />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Tetris$Tetris.coverage" NAME="Tetris Coverage Results" MODIFIED="1755950088919" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+    <SUITE FILE_PATH="coverage/Tetris$Tetris.coverage" NAME="Tetris Coverage Results" MODIFIED="1755969163678" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
   </component>
 </project>
